@@ -2,8 +2,6 @@ SUBPROCESS_FAILED_EXIT=10
 import os
 import subprocess
 import sys
-import Queue
-from threading import Thread
 # Simple class to represent command and stdout
 #
 class Command:
@@ -15,7 +13,7 @@ class Command:
         self.command = command
         self.stdout = command
 
-def run_subprocess(command,stdout=None):
+def run_subprocess(command,tool,stdout=None):
         try:
             if(stdout is None):
                 exit_code = subprocess.Popen(command)
@@ -39,13 +37,13 @@ def __queue_worker__(q):
     stdout=None
     while True:
         queue_item=q.get()
-        if (isinstance(queue_item,tuple)):
+        try:
             cmd=queue_item[0]
             stdout=queue_item[1]
-        else:
+        except IndexError:
             cmd=queue_item
         try:
-            run_subprocess(cmd,stdout=stdout)
+            run_subprocess(cmd,tool_name,stdout=stdout)
         except SystemExit:
             logger.error(tool_name + " : Failed to run in thread ")
             sys.exit(SUBPROCESS_FAILED_EXIT)
@@ -58,10 +56,11 @@ def queue_jobs(commands,threads):
         t = Thread(target=__queue_worker__,args=[q])
         t.daemon = True
         t.start()
-    for i in range(len(commands)):
-        if (isinstance(commands[i],tuple)):
-            q.put((commands[i][0],commands[i][1])) 
-        else:
-            q.put(commands[i]) 
+    if stdouts is not None:
+        for tup in zip(commands,stdouts):
+            q.put(tup)  
+    else:
+        for cmd in commands:
+            q.put(cmd) 
     q.join()
 

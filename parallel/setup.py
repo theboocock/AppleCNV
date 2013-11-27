@@ -7,5 +7,6 @@ setup (
     author_email="smilefreak@gmx.com",
     description = "Small library to implement simple GNU parralel like interface in python",
     url='http://github.com/smilefreak/AppleCNV/parallel',
+    zip_safe=False,
     use_2to3=True)
      

@@ -58,10 +58,7 @@ def queue_jobs(commands,threads):
         t = Thread(target=__queue_worker__,args=[q])
         t.daemon = True
         t.start()
-    for i in range(len(commands)):
-        if (isinstance(commands[i],tuple)):
-            q.put((commands[i][0],commands[i][1])) 
-        else:
-            q.put(commands[i]) 
+    for item in (commands):
+        t.put(item.command,item.stdout)
     q.join()
 

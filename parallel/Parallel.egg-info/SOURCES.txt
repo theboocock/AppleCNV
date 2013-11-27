@@ -2,5 +2,6 @@ setup.py
 Parallel.egg-info/PKG-INFO
 Parallel.egg-info/SOURCES.txt
 Parallel.egg-info/dependency_links.txt
+Parallel.egg-info/not-zip-safe
 Parallel.egg-info/top_level.txt
 parallel/__init__.py

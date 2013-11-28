@@ -9,8 +9,7 @@ import os
 import re
 
 commands = []
-cores = 4
-os.chdir(working_dir)
+cores =10
 
 directory = '/Volumes/merrimanlab/Documents/James/new_apple_data/ReSequencing/new_fifteen'
 
@@ -26,10 +25,16 @@ r_two_match = re.compile(r".*_2.fastq")
 s_one_match = re.compile(r".*_1.sai")
 s_two_match = re.compile(r".*_2.sai")
 
+index_reference = ([bwa_path,'index',reference_genome])
+#queue_jobs([Command(index_reference)],cores)
+
+
+os.chdir(working_dir)
 if not (os.path.exists(working_dir)):
     print(working_dir)
     os.mkdir(working_dir)
 
+print(working_dir)
 for item in os.listdir(directory):
     if(item.endswith(".fastq")): 
         item = os.path.join(directory,item)
@@ -37,9 +42,8 @@ for item in os.listdir(directory):
         cmd.extend([bwa_path,'aln',reference_genome,item])
         output_name =  os.path.basename(item)
         output_name = output_name.split('.fastq')[0] +'.sai'
-        cmd.append(output_name)
-        commands.append(Command(cmd))
-#queue_jobs(commands,cores)
+        commands.append(Command(cmd,output_name))
+queue_jobs(commands,cores)
 # get all the reads
 aligned_fastq = sorted(os.listdir(working_dir))
 
@@ -58,34 +62,34 @@ for rOne, rTwo, saiOne, saiTwo in zip(read_one,read_two,sai_one,sai_two):
     cmd.extend([saiOne,rOne,saiTwo,rTwo])
     output_name=os.path.basename(rOne)
     output_name=output_name.split('_1.fastq')[0] +'.sam'
-    cmd.append(output_name)
-    sampe_commands.append(Command(cmd))
+    sampe_commands.append(Command(cmd,output_name))
 
 
-#queue_jobs(sampe_commands,cores)
+queue_jobs(sampe_commands,cores)
 
 ##### SAM TOOLS commands #########
 
 sam_to_bam=[]
 for item in os.listdir('.'):
-    if(item.endswith('.sam'):
+    if(item.endswith('.sam')):
         cmd=[]
         cmd.extend([sam_tools_path,'view','-h','-S',item])
         output_name=item.split('.sam')[0]+'.bam'
         sam_to_bam.append(Command(cmd,output_name))
-
+queue_jobs(sam_to_bam,cores)
 sort_bam=[]
 for item in os.listdir('.'):
-    if(item.endswith('.bam'):
+    if(item.endswith('.bam')):
         cmd=[]
         cmd.extend([sam_tools_path,'sort',item,item.split('.bam')[0]+ '_sorted'])
         sort_bam.append(Command(cmd))
-
+queue_jobs(sort_bam,cores)
 index_bam=[]
+
 for item in os.listdir('.'):
-    if(item.endswith('sorted.bam'):
+    if(item.endswith('sorted.bam')):
         cmd=[]
         cmd.extend([sam_tools_path,'index',item])
-
-
+        index_bam.append(Command(cmd))
+queue_jobs(index_bam,cores)
 

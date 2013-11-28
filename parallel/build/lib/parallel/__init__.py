@@ -13,7 +13,7 @@ class Command:
         if(type(command) == str):
             command = command.split()
         self.command = command
-        self.stdout = command
+        self.stdout = stdout
 
 def run_subprocess(command,stdout=None):
         try:
@@ -39,17 +39,15 @@ def __queue_worker__(q):
     stdout=None
     while True:
         queue_item=q.get()
-        if (isinstance(queue_item,tuple)):
-            cmd=queue_item[0]
-            stdout=queue_item[1]
-        else:
-            cmd=queue_item
+        print(queue_item)
+        cmd=queue_item[0]
+        stdout=queue_item[1]
         try:
             run_subprocess(cmd,stdout=stdout)
         except SystemExit:
             logger.error(tool_name + " : Failed to run in thread ")
             sys.exit(SUBPROCESS_FAILED_EXIT)
-    q.task_done()
+        q.task_done()
 
     
 def queue_jobs(commands,threads):
@@ -58,10 +56,9 @@ def queue_jobs(commands,threads):
         t = Thread(target=__queue_worker__,args=[q])
         t.daemon = True
         t.start()
-    for i in range(len(commands)):
-        if (isinstance(commands[i],tuple)):
-            q.put((commands[i][0],commands[i][1])) 
-        else:
-            q.put(commands[i]) 
+    for item in (commands):
+        q.put([item.command,item.stdout])
+    print('waiting for jobs')
     q.join()
+    print('jobs_finished')
 
